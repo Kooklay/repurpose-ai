@@ -1,10 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signUp } from "@/app/auth/actions";
 
-export default function SignupPage() {
+function SignupPageInner() {
+  const searchParams = useSearchParams();
+  const source = searchParams.get("source") || "";
+
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -37,11 +41,11 @@ export default function SignupPage() {
         </Link>
 
         <h1 className="auth-title">Создать аккаунт</h1>
-        <p className="auth-subtitle">
-          3 бесплатные генерации. Без карты.
-        </p>
+        <p className="auth-subtitle">3 бесплатные генерации. Без карты.</p>
 
         <form action={handleSubmit} className="auth-form">
+          <input type="hidden" name="source" value={source} />
+
           <div className="auth-field">
             <label htmlFor="email" className="auth-label">
               Email
@@ -101,5 +105,13 @@ export default function SignupPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignupPageInner />
+    </Suspense>
   );
 }

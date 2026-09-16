@@ -25,7 +25,7 @@ export default function Home() {
       {/* HERO */}
       <section className="hero">
         <div className="hero-inner">
-          <div className="badge">1 бесплатная генерация без регистрации</div>
+          <div className="badge">3 бесплатные генерации — без карты</div>
           <h1 className="hero-title">
             Одно видео{" "}
             <span className="hero-title-accent">
@@ -36,13 +36,16 @@ export default function Home() {
             Вставь ссылку на YouTube, статью или подкаст. Получи 30+ готовых
             постов для X, LinkedIn, TikTok, Telegram и email — за 60 секунд.
           </p>
-          <form className="hero-form">
+          <form className="hero-form" action="/auth/redirect" method="get">
             <input
               type="url"
+              name="source"
               placeholder="https://youtube.com/watch?v=..."
               className="hero-input"
             />
-            <button type="button" className="hero-button">Сгенерировать</button>
+            <button type="submit" className="hero-button">
+              Сгенерировать
+            </button>
           </form>
           <p className="hero-hint">
             Без карты · Без регистрации · Результат сразу
