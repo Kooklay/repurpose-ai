@@ -9,12 +9,10 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Защита: если не залогинен — на /login
   if (!user) {
     redirect("/login");
   }
 
-  // Берём профиль из public.users
   const { data: profile } = await supabase
     .from("users")
     .select("*")
@@ -24,6 +22,14 @@ export default async function DashboardPage() {
   const generationsUsed = profile?.generations_used ?? 0;
   const generationsLimit = profile?.generations_limit ?? 3;
   const plan = profile?.plan ?? "free";
+
+  // История генераций
+  const { data: generations } = await supabase
+    .from("generations")
+    .select("id, source_url, status, created_at, tokens_used")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(10);
 
   return (
     <div style={{ minHeight: "100vh", background: "#0a0a0b", color: "#fafafa" }}>
@@ -35,7 +41,11 @@ export default async function DashboardPage() {
             Repurpose.ai
           </Link>
           <form action={signOut}>
-            <button type="submit" className="btn-ghost" style={{ display: "inline-block" }}>
+            <button
+              type="submit"
+              className="btn-ghost"
+              style={{ display: "inline-block" }}
+            >
               Выйти
             </button>
           </form>
@@ -48,11 +58,19 @@ export default async function DashboardPage() {
           <p style={{ fontSize: "14px", color: "#a1a1aa", marginBottom: "8px" }}>
             Личный кабинет
           </p>
-          <h1 style={{ fontSize: "40px", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: "16px" }}>
+          <h1
+            style={{
+              fontSize: "40px",
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+              marginBottom: "16px",
+            }}
+          >
             Привет, {user.email}
           </h1>
           <p style={{ fontSize: "16px", color: "#a1a1aa" }}>
-            Тариф: <strong style={{ color: "#7c3aed" }}>{plan.toUpperCase()}</strong>
+            Тариф:{" "}
+            <strong style={{ color: "#7c3aed" }}>{plan.toUpperCase()}</strong>
           </p>
         </div>
 
@@ -66,7 +84,14 @@ export default async function DashboardPage() {
             marginBottom: "32px",
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "20px",
+            }}
+          >
             <h2 style={{ fontSize: "18px", fontWeight: 600 }}>Использование</h2>
             <span style={{ fontSize: "14px", color: "#a1a1aa" }}>
               {generationsUsed} из {generationsLimit} генераций
@@ -82,7 +107,10 @@ export default async function DashboardPage() {
           >
             <div
               style={{
-                width: `${Math.min(100, (generationsUsed / generationsLimit) * 100)}%`,
+                width: `${Math.min(
+                  100,
+                  (generationsUsed / generationsLimit) * 100
+                )}%`,
                 height: "100%",
                 background: "linear-gradient(to right, #7c3aed, #a78bfa)",
                 transition: "width 0.3s",
@@ -91,7 +119,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* NEW GENERATION BUTTON */}
+        {/* NEW GENERATION */}
         <div
           style={{
             padding: "48px 32px",
@@ -99,29 +127,94 @@ export default async function DashboardPage() {
             borderRadius: "16px",
             background: "rgba(24, 24, 27, 0.3)",
             textAlign: "center",
+            marginBottom: "32px",
           }}
         >
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>✨</div>
           <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: "8px" }}>
             Новая генерация
           </h2>
-          <p style={{ fontSize: "14px", color: "#a1a1aa", marginBottom: "24px" }}>
+          <p
+            style={{
+              fontSize: "14px",
+              color: "#a1a1aa",
+              marginBottom: "24px",
+            }}
+          >
             Вставь ссылку на YouTube, статью или подкаст — получи 30+ постов
           </p>
-          <button
-            type="button"
+          <Link
+            href="/generate"
             className="btn-primary"
-            style={{ padding: "12px 24px", fontSize: "14px" }}
-            disabled
+            style={{
+              display: "inline-block",
+              padding: "14px 32px",
+              fontSize: "15px",
+              textDecoration: "none",
+            }}
           >
-            Скоро — генерация через AI
-          </button>
+            Новая генерация →
+          </Link>
         </div>
 
-        {/* INFO */}
-        <p style={{ marginTop: "32px", fontSize: "13px", color: "#71717a", textAlign: "center" }}>
-          Генерация контента появится после подключения OpenAI API. Следи за обновлениями.
-        </p>
+        {/* HISTORY */}
+        {generations && generations.length > 0 && (
+          <div>
+            <h2
+              style={{
+                fontSize: "20px",
+                fontWeight: 600,
+                marginBottom: "16px",
+              }}
+            >
+              История генераций
+            </h2>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "8px" }}
+            >
+              {generations.map((gen) => (
+                <div
+                  key={gen.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "16px 20px",
+                    border: "1px solid #26262b",
+                    borderRadius: "12px",
+                    background: "rgba(24, 24, 27, 0.6)",
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: 500,
+                        color: "#e4e4e7",
+                        marginBottom: "4px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {gen.source_url || "Текстовая генерация"}
+                    </div>
+                    <div style={{ fontSize: "12px", color: "#71717a" }}>
+                      {new Date(gen.created_at).toLocaleString("ru-RU")}
+                      {" · "}
+                      {gen.status === "done" &&
+                        `✅ Готово (${gen.tokens_used} токенов)`}
+                      {gen.status === "pending" && "⏳ В процессе"}
+                      {gen.status === "transcribing" && "🎤 Транскрипция"}
+                      {gen.status === "generating" && "🤖 Генерация"}
+                      {gen.status === "error" && "❌ Ошибка"}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
