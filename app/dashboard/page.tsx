@@ -3,6 +3,9 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/auth/actions";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function DashboardPage() {
   const supabase = await createClient();
   const {
@@ -23,13 +26,20 @@ export default async function DashboardPage() {
   const generationsLimit = profile?.generations_limit ?? 3;
   const plan = profile?.plan ?? "free";
 
-  // История генераций
-  const { data: generations } = await supabase
-    .from("generations")
-    .select("id, source_url, status, created_at, tokens_used")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(10);
+  // История генераций (без кэша, с игнорированием ошибок)
+  let generations: any[] = [];
+  try {
+    const { data } = await supabase
+      .from("generations")
+      .select("id, source_url, status, created_at, tokens_used")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(10);
+    generations = data || [];
+  } catch (e) {
+    console.error("Failed to load generations:", e);
+    generations = [];
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: "#0a0a0b", color: "#fafafa" }}>

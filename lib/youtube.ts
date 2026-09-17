@@ -41,28 +41,51 @@ export async function getYouTubeTranscript(url: string): Promise<string> {
   const videoId = extractYouTubeId(url);
 
   if (!videoId) {
-    throw new Error("Неверная YouTube-ссылка");
+    throw new Error("Неверная YouTube-ссылка. Проверьте URL.");
   }
 
   try {
     const transcript = await YoutubeTranscript.fetchTranscript(videoId);
 
     if (!transcript || transcript.length === 0) {
-      throw new Error("Транскрипт не найден. Возможно, у видео отключены субтитры.");
+      throw new Error(
+        "У этого видео нет субтитров. Попробуйте другое видео — с автогенерированными или ручными субтитрами."
+      );
     }
 
-    // Собираем весь текст в одну строку
     const fullText = transcript
       .map((item) => item.text)
       .join(" ")
-      .replace(/\s+/g, " ") // убираем лишние пробелы
+      .replace(/\s+/g, " ")
       .trim();
 
     return fullText;
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(`Ошибка загрузки транскрипта: ${error.message}`);
+      const msg = error.message.toLowerCase();
+
+      // Специфические ошибки YouTube
+      if (msg.includes("disabled") || msg.includes("no transcript")) {
+        throw new Error(
+          "У этого видео отключены субтитры. Выберите другое видео — где есть субтитры или включён автоперевод."
+        );
+      }
+
+      if (msg.includes("not found") || msg.includes("unavailable")) {
+        throw new Error(
+          "Видео недоступно. Проверьте что оно публичное и ссылка корректна."
+        );
+      }
+
+      if (msg.includes("too many requests") || msg.includes("rate limit")) {
+        throw new Error(
+          "Слишком много запросов к YouTube. Подождите минуту и попробуйте снова."
+        );
+      }
+
+      throw new Error(`Не удалось загрузить транскрипт: ${error.message}`);
     }
-    throw new Error("Не удалось загрузить транскрипт");
+
+    throw new Error("Не удалось загрузить транскрипт. Попробуйте другое видео.");
   }
 }

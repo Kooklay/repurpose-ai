@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { generateContent } from "@/app/actions";
 
+export const dynamic = "force-dynamic";
+
 const PLATFORMS = [
   { id: "twitter", label: "X (Twitter)" },
   { id: "linkedin", label: "LinkedIn" },
@@ -178,12 +180,51 @@ function GeneratePageInner() {
 
         {status === "error" && (
           <div className="generate-error">
-            <h2>Что-то пошло не так</h2>
-            <p>{error}</p>
+            <div style={{ fontSize: "48px", marginBottom: "8px" }}>⚠️</div>
+            <h2>Не получилось обработать видео</h2>
+            <p
+              style={{
+                maxWidth: "500px",
+                margin: "0 auto 24px",
+                lineHeight: 1.6,
+                color: "#fca5a5",
+              }}
+            >
+              {error}
+            </p>
+
+            <div
+              style={{
+                padding: "16px 20px",
+                border: "1px solid #34343a",
+                borderRadius: "12px",
+                background: "rgba(24, 24, 27, 0.6)",
+                maxWidth: "500px",
+                margin: "0 auto 24px",
+                textAlign: "left",
+                fontSize: "13px",
+                color: "#a1a1aa",
+              }}
+            >
+              <strong
+                style={{
+                  color: "#e4e4e7",
+                  display: "block",
+                  marginBottom: "8px",
+                }}
+              >
+                💡 Что можно попробовать:
+              </strong>
+              <div>• Выбрать видео с субтитрами (включены у большинства)</div>
+              <div>• Проверить что ссылка ведёт на публичное видео</div>
+              <div>• Подождать минуту если YouTube ограничил запросы</div>
+              <div>• Попробовать более короткое видео (до 15 минут)</div>
+            </div>
+
             <button
               onClick={() => setStatus("idle")}
               className="form-submit"
-              style={{ maxWidth: "300px" }}
+              style={{ maxWidth: "300px", margin: "0 auto", display: "block" }}
             >
               Попробовать снова
             </button>

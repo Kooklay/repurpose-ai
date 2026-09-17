@@ -18,9 +18,23 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             );
           } catch {
-            // Игнорируем - вызывается из Server Component,
-            // где нельзя менять cookies. Но middleware обновит их.
+            // Server Component — не может менять cookies
           }
+        },
+      },
+      global: {
+        fetch: async (url, options) => {
+          // Retry для ECONNRESET (частый в РФ)
+          for (let attempt = 0; attempt < 3; attempt++) {
+            try {
+              return await fetch(url, options);
+            } catch (error) {
+              const isLastAttempt = attempt === 2;
+              if (isLastAttempt) throw error;
+              await new Promise((r) => setTimeout(r, 500));
+            }
+          }
+          throw new Error("Все попытки исчерпаны");
         },
       },
     }
