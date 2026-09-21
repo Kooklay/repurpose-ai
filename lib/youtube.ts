@@ -31,9 +31,52 @@ export function isYouTubeUrl(url: string): boolean {
 }
 
 /**
+ * Пробует получить транскрипт с таймаутом.
+ * Пробует русские → английские → авто-субтитры.
+ * Ограничивает результат 15 000 символов.
+ * Общий таймаут — 45 секунд (3 попытки × 15 сек).
+ */
+async function tryFetchTranscript(
+  videoId: string,
+  lang?: string
+): Promise<string | null> {
+  try {
+    // Таймаут на одну попытку — 15 секунд
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("timeout")), 15000)
+    );
+
+    const fetchPromise = YoutubeTranscript.fetchTranscript(
+      videoId,
+      lang ? { lang } : undefined
+    );
+
+    const transcript = await Promise.race([fetchPromise, timeoutPromise]);
+
+    if (!transcript || transcript.length === 0) {
+      return null;
+    }
+
+    const fullText = transcript
+      .map((item) => item.text)
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (fullText.length < 50) {
+      return null;
+    }
+
+    // Ограничиваем 15 000 символов — примерно 15 минут видео
+    return fullText.substring(0, 15000);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Получает транскрипт с YouTube.
- * Пробует русские субтитры → английские → автоматические.
- * Если ни одного нет — понятная ошибка.
+ * Пробует несколько языков. Если ничего — понятная ошибка.
  */
 export async function getYouTubeTranscript(url: string): Promise<string> {
   const videoId = extractYouTubeId(url);
@@ -42,33 +85,18 @@ export async function getYouTubeTranscript(url: string): Promise<string> {
     throw new Error("Неверная YouTube-ссылка. Проверьте URL.");
   }
 
+  // Пробуем языки по очереди
   const languages: (string | undefined)[] = ["ru", "en", undefined];
 
   for (const lang of languages) {
-    try {
-      const transcript = await YoutubeTranscript.fetchTranscript(
-        videoId,
-        lang ? { lang } : undefined
-      );
-
-      if (transcript && transcript.length > 0) {
-        const fullText = transcript
-          .map((item) => item.text)
-          .join(" ")
-          .replace(/\s+/g, " ")
-          .trim();
-
-        if (fullText.length > 0) {
-          return fullText;
-        }
-      }
-    } catch {
-      continue;
+    const result = await tryFetchTranscript(videoId, lang);
+    if (result) {
+      return result;
     }
   }
 
-  // Если ни одного языка не нашли — понятная ошибка
+  // Ничего не получилось
   throw new Error(
-    "У этого видео нет субтитров. Попробуйте другое видео — например, обучающее, интервью или подкаст. У большинства таких роликов субтитры включены."
+    "Не удалось получить субтитры видео. Возможные причины: у видео нет субтитров, видео слишком длинное, или YouTube временно ограничил запросы. Попробуйте видео покороче или подождите минуту."
   );
 }
