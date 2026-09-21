@@ -106,7 +106,7 @@ function GeneratePageInner() {
       <main className="generate-main">
         <h1 className="generate-title">Новая генерация</h1>
         <p className="generate-subtitle">
-          Вставь ссылку на YouTube-видео — получим 30+ постов за 60 секунд
+          Вставь ссылку на YouTube-видео — получим 30+ постов
         </p>
 
         {status === "idle" && (
@@ -121,6 +121,17 @@ function GeneratePageInner() {
                 defaultValue={prefilledSource}
                 className="form-input"
               />
+              <p
+                style={{
+                  fontSize: "13px",
+                  color: "#71717a",
+                  marginTop: "8px",
+                  lineHeight: 1.5,
+                }}
+              >
+                ⚠️ Видео должно быть с субтитрами — ручными или автоматическими.
+                Проверить можно в настройках плеера YouTube.
+              </p>
             </div>
 
             <div className="form-field">
@@ -170,9 +181,9 @@ function GeneratePageInner() {
             <div className="spinner" />
             <p className="loading-text">Обрабатываем видео...</p>
             <div className="loading-stages">
-              <span>⏳ Транскрипция YouTube</span>
-              <span>⏳ Анализ содержимого</span>
-              <span>⏳ Генерация постов</span>
+              <span>⏳ Загружаем субтитры YouTube</span>
+              <span>⏳ Анализируем содержимое</span>
+              <span>⏳ Генерируем посты</span>
             </div>
             <p className="loading-hint">Обычно 30–60 секунд</p>
           </div>
@@ -204,21 +215,27 @@ function GeneratePageInner() {
                 textAlign: "left",
                 fontSize: "13px",
                 color: "#a1a1aa",
+                lineHeight: 1.7,
               }}
             >
               <strong
                 style={{
                   color: "#e4e4e7",
                   display: "block",
-                  marginBottom: "8px",
+                  marginBottom: "10px",
                 }}
               >
                 💡 Что можно попробовать:
               </strong>
-              <div>• Выбрать видео с субтитрами (включены у большинства)</div>
+              <div>
+                • Убедиться что у видео есть субтитры — включить их в настройках
+                плеера YouTube
+              </div>
+              <div>• Выбрать обучающее видео, интервью или подкаст — у них
+                субтитры обычно есть
+              </div>
               <div>• Проверить что ссылка ведёт на публичное видео</div>
               <div>• Подождать минуту если YouTube ограничил запросы</div>
-              <div>• Попробовать более короткое видео (до 15 минут)</div>
             </div>
 
             <button

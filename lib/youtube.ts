@@ -26,16 +26,14 @@ export function extractYouTubeId(url: string): string | null {
   return null;
 }
 
-/**
- * Проверяет, является ли ссылка YouTube-ссылкой.
- */
 export function isYouTubeUrl(url: string): boolean {
   return extractYouTubeId(url) !== null;
 }
 
 /**
- * Получает транскрипт (текст) видео с YouTube.
- * Работает только если у видео есть субтитры.
+ * Получает транскрипт с YouTube.
+ * Пробует русские субтитры → английские → автоматические.
+ * Если ни одного нет — понятная ошибка.
  */
 export async function getYouTubeTranscript(url: string): Promise<string> {
   const videoId = extractYouTubeId(url);
@@ -44,48 +42,33 @@ export async function getYouTubeTranscript(url: string): Promise<string> {
     throw new Error("Неверная YouTube-ссылка. Проверьте URL.");
   }
 
-  try {
-    const transcript = await YoutubeTranscript.fetchTranscript(videoId);
+  const languages: (string | undefined)[] = ["ru", "en", undefined];
 
-    if (!transcript || transcript.length === 0) {
-      throw new Error(
-        "У этого видео нет субтитров. Попробуйте другое видео — с автогенерированными или ручными субтитрами."
+  for (const lang of languages) {
+    try {
+      const transcript = await YoutubeTranscript.fetchTranscript(
+        videoId,
+        lang ? { lang } : undefined
       );
+
+      if (transcript && transcript.length > 0) {
+        const fullText = transcript
+          .map((item) => item.text)
+          .join(" ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        if (fullText.length > 0) {
+          return fullText;
+        }
+      }
+    } catch {
+      continue;
     }
-
-    const fullText = transcript
-      .map((item) => item.text)
-      .join(" ")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    return fullText;
-  } catch (error) {
-    if (error instanceof Error) {
-      const msg = error.message.toLowerCase();
-
-      // Специфические ошибки YouTube
-      if (msg.includes("disabled") || msg.includes("no transcript")) {
-        throw new Error(
-          "У этого видео отключены субтитры. Выберите другое видео — где есть субтитры или включён автоперевод."
-        );
-      }
-
-      if (msg.includes("not found") || msg.includes("unavailable")) {
-        throw new Error(
-          "Видео недоступно. Проверьте что оно публичное и ссылка корректна."
-        );
-      }
-
-      if (msg.includes("too many requests") || msg.includes("rate limit")) {
-        throw new Error(
-          "Слишком много запросов к YouTube. Подождите минуту и попробуйте снова."
-        );
-      }
-
-      throw new Error(`Не удалось загрузить транскрипт: ${error.message}`);
-    }
-
-    throw new Error("Не удалось загрузить транскрипт. Попробуйте другое видео.");
   }
+
+  // Если ни одного языка не нашли — понятная ошибка
+  throw new Error(
+    "У этого видео нет субтитров. Попробуйте другое видео — например, обучающее, интервью или подкаст. У большинства таких роликов субтитры включены."
+  );
 }
