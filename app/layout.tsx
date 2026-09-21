@@ -9,14 +9,51 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Repurpose.ai — одно видео → контент на неделю вперёд",
+  title: {
+    default: "Repurpose.ai — одно видео → 30+ постов для соцсетей",
+    template: "%s | Repurpose.ai",
+  },
   description:
-    "Вставь ссылку на YouTube, статью или подкаст. Получи 30+ готовых постов для X, LinkedIn, TikTok, Telegram и email — за 60 секунд.",
+    "AI-инструмент, который превращает ссылку на YouTube в 30+ готовых постов для X, LinkedIn, TikTok, Telegram и email. Бесплатно 3 генерации.",
+  keywords: [
+    "AI контент",
+    "репурпозинг",
+    "YouTube в посты",
+    "генерация постов",
+    "AI для маркетологов",
+    "SaaS",
+  ],
+  authors: [{ name: "Kooklay" }],
+  creator: "Kooklay",
   openGraph: {
-    title: "Repurpose.ai — одно видео → контент на неделю вперёд",
-    description:
-      "30+ готовых постов для X, LinkedIn, TikTok, Telegram и email из одной ссылки.",
     type: "website",
+    locale: "ru_RU",
+    url: "https://repurpose-ai-kooklay.vercel.app",
+    title: "Repurpose.ai — одно видео → 30+ постов",
+    description:
+      "AI-инструмент для создания контента из одного YouTube-видео. 30+ постов за 60 секунд.",
+    siteName: "Repurpose.ai",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Repurpose.ai — одно видео → 30+ постов",
+    description: "AI-инструмент для репурпозинга контента.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  verification: {
+    // Добавь после добавления в Яндекс.Вебмастер и Google Search Console
+    // yandex: "твой-код-подтверждения",
+    // google: "твой-код-подтверждения",
   },
 };
 
