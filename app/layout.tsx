@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   title: {
     default: "Repurpose.ai — одно видео → 30+ постов для соцсетей",
     template: "%s | Repurpose.ai",
+
   },
   description:
     "AI-инструмент, который превращает ссылку на YouTube в 30+ готовых постов для X, LinkedIn, TikTok, Telegram и email. Бесплатно 3 генерации.",
@@ -54,6 +55,9 @@ export const metadata: Metadata = {
     // Добавь после добавления в Яндекс.Вебмастер и Google Search Console
     // yandex: "твой-код-подтверждения",
     // google: "твой-код-подтверждения",
+  },
+  other: {
+    telderi: "5ad07242091e57a07ef9d42270ac95e5",
   },
 };
 
